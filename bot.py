@@ -9,7 +9,7 @@ import hashlib
 import functionslib as func
 from datetime import datetime
 
-admin_channel_id = 705791066892140644
+admin_channel_id = 705912665444450324
 token_file = "token.txt"
 server_name = "Southland.lt"
 samp_server_ip = "samp.southland.lt:7777"
@@ -22,9 +22,6 @@ messages = {
 }
 
 if __name__ == "__main__":
-
-    db = func.mysql_connect()
-
     print("Starting bot.py!")
 
     token = func.read_token()
@@ -56,17 +53,8 @@ if __name__ == "__main__":
         """
             Komandos
         """
-
         if message.author == client.user:
             return # ignore the bot itself
-
-        # if message.content.startswith("!greetme"):
-            # await greet_member(message.channel, message.author)
-            # message.channel.send(messages["welcome_global"].format(message.author.display_name, server_name))
-
-        if message.content.startswith("!dmme"):
-            dm = await message.author.create_dm()
-            await dm.send(messages['verification_message'])
 
         if message.content.startswith("!myid"):
             await message.channel.send(f"Tavo Discord ID yra {message.author.id}")
@@ -121,7 +109,8 @@ if __name__ == "__main__":
                 check_user,
                 row[0],
                 user_id,
-                func.hide_ip(row[2]),
+                # func.hide_ip(row[2]),
+                row[2],
                 row[3]
             )
 
@@ -131,7 +120,9 @@ if __name__ == "__main__":
 
     async def show_game_accounts(lpad, channel, admin, user_id):
     
+        db = func.mysql_connect()
         cur = db.cursor()
+
         sql = f"SELECT `Name`,`gpci` FROM `players_data` WHERE `UserId`='{user_id}'"
         cur.execute(sql)
         rows = cur.fetchall()
@@ -142,8 +133,12 @@ if __name__ == "__main__":
             string = lpad
             string += "Veikėjai:```"
             
-            for row in rows:
-                string += f"{row[0]}, veikėjo GPCI: {row[1]}\n\n"
+            if rows is None:
+                string += "Nėra"
+
+            else:
+                for row in rows:
+                    string += f"{row[0]}, veikėjo GPCI: {row[1]}\n\n"
 
             string += "```"
             if len(string) > 0:
@@ -153,19 +148,21 @@ if __name__ == "__main__":
                 await client.wait_until_ready()
                 admin_channel = client.get_channel(admin_channel_id)
                 await admin_channel.send(string)
-            
 
-        cur.close()
+        cur.close()    
+        db.close()
 
     async def verify_member(channel, member, args):
         """
             Userio patvirtinimas    
         """
 
+        db = func.mysql_connect()
         cur = db.cursor()
+
         args[1] = args[1].strip()
 
-        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordVerified` >= '2'"
+        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordVerified` >= '2' AND `DiscordUser` = '{member.id}'"
         cur.execute(sql)
         row = cur.fetchone()
         if row is not None:
@@ -211,6 +208,7 @@ if __name__ == "__main__":
                     await send_verification_code(member, code)
                     # await channel.send(f"<@{member.id}> sėkmingai **patvirtinai** vartotoją `{name}` :white_check_mark:")
 
+        db.close()
         cur.close()
 
     async def send_verification_code(member, code):
