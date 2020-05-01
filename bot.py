@@ -16,8 +16,7 @@ messages             = {
     "verification_message" : 
         f"Sveikiname prisijungus prie {server_name}! :partying_face:\n"
         f"Jei negali rašyti žinučių Discord kanaluose, privalai patvirtinti savo telefono numerį."
-        f"Norėdamas patvirtinti savo UCP vartotoją, užsiregistruok serveryje `{samp_server_ip}`\n"
-        f"Žemiau paraťyk savo __žaidimo Vardą_Pavardę__ ir lauk **patvirtinimo**",
+        f"Norėdamas patvirtinti savo UCP vartotoją, užsiregistruok serveryje `{samp_server_ip}`\n",
     "welcome_global" : 
         "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!",
 }
@@ -61,8 +60,8 @@ if __name__ == "__main__":
         if message.author == client.user:
             return # ignore the bot itself
 
-        if message.content.startswith("!greetme"):
-            await greet_member(message.channel, message.author)
+        # if message.content.startswith("!greetme"):
+            # await greet_member(message.channel, message.author)
             # message.channel.send(messages["welcome_global"].format(message.author.display_name, server_name))
 
         if message.content.startswith("!dmme"):
