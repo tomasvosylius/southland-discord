@@ -20,10 +20,11 @@ messages             = {
     "welcome_global" : 
         "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!",
 }
-gen_channel = None # general channel
-admin_channel = None # admin-logs channel
 
 if __name__ == "__main__":
+
+    gen_channel = None # general channel
+    admin_channel = None # admin-logs channel
 
     db = func.mysql_connect()
 
@@ -49,7 +50,7 @@ if __name__ == "__main__":
             print("Error when looking for channel (admin_channel)")
         else:
             print("Admin logs channel was found")
-            await admin_channel.send("Sistema įjungta")
+            # await admin_channel.send("Sistema įjungta")
 
     @client.event
     async def on_member_join(member):
@@ -173,7 +174,9 @@ if __name__ == "__main__":
                 #     await dm.send(string)
                 # else:
                 await channel.send(f"<@{admin.id}>, vartotojo duomenys ir veikėjai išsiųsti į <#{admin_logs_channel_name}> kanalą.")
-                admin_channel.send(string)
+                await channel.send(string) # works
+                
+                # await admin_channel.send(string)
                 
                 #await channel.send(string)
 
