@@ -39,13 +39,13 @@ if __name__ == "__main__":
 
     @client.event 
     async def on_ready():
-        gen_channel = func.get_channel_by_name(client, general_channel_name)
-        if gen_channel is None:
-            print("Error when looking for channel (general)")
-        else:
-            print("General channel was found")
+        # gen_channel = func.get_channel_by_name(client, general_channel_name)
+        # if gen_channel is None:
+        #     print("Error when looking for channel (general)")
+        # else:
+        #     print("General channel was found")
 
-        admin_channel = func.get_channel_by_name(client, admin_logs_channel_name);
+        admin_channel = func.get_channel_by_name(client, admin_logs_channel_name)
         if admin_channel is None:
             print("Error when looking for channel (admin_channel)")
         else:
@@ -158,7 +158,7 @@ if __name__ == "__main__":
             await channel.send(f"Žaidėjas veikėjų neturi.")
 
         else:
-            string = lpad;
+            string = lpad
             string += "Veikėjai:```"
             
             for row in rows:
@@ -173,12 +173,12 @@ if __name__ == "__main__":
                 #     dm = await admin.create_dm()
                 #     await dm.send(string)
                 # else:
+                await client.wait_until_ready()
+
                 await channel.send(f"<@{admin.id}>, vartotojo duomenys ir veikėjai išsiųsti į <#{admin_logs_channel_name}> kanalą.")
-                await channel.send(string) # works
+                await admin_channel.send(string) # doesnt work
                 
-                # await admin_channel.send(string)
-                
-                #await channel.send(string)
+                #await channel.send(string) works
 
         cur.close()
 
