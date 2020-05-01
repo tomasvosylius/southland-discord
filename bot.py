@@ -3,7 +3,9 @@
 # using discord.py
 
 import discord
+import hashlib
 import functionslib as func
+from datetime import datetime
 
 admin_channel_id     = 705791066892140644
 token_file           = "token.txt"
@@ -164,28 +166,56 @@ if __name__ == "__main__":
         cur = db.cursor()
         args[1] = args[1].strip()
 
-        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordUser`='{member.id}'"
+        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordUser`='{member.id}' AND `DiscordVerified` >= '2'"
         cur.execute(sql)
         row = cur.fetchone()
         if row is not None:
             await channel.send(f"<@{member.id}>, tavo Discord vartotojas jau surištas su žaidimo vartotoju `{row[0]}`. Šiame projekte gali turėti tik vieną žaidimo vartotoją ant to pačio Discord vartotojo :x:")
 
         else:
-            sql = f"SELECT `id`,`DiscordVerified` FROM `users_data` WHERE `Name`='{args[1]}'" # WHERE `Name` = '%s'"
-            cur.execute(sql) # , args[1]
+            name = args[1].replace('%', '')
+            name = name.replace(';', '')
+            name = name.replace('-', '')
+            name = name.replace('\'', '')
+            if len(name) <= 0:
+                return
+
+            sql = f"SELECT `id`,`DiscordVerified`,`DiscordCode` FROM `users_data` WHERE `Name`='{name}'"
+            cur.execute(sql)
             row = cur.fetchone()
 
             if row is None:
-                await channel.send(f"<@{member.id}>, vartotojas `{args[1]}` serveryje **neegzistuoja** :x:")
+                await channel.send(f"<@{member.id}>, vartotojas `{name}` serveryje **neegzistuoja** :x:")
             else:
-                if row[1] >= 1:
-                    await channel.send(f"<@{member.id}>, vartotojas `{args[1]}` jau yra **patvirtintas** :x:")
+                user_id = row[0]
+                verified = row[1]
+                code = row[2]
+
+                if verified == 2:
+                    await channel.send(f"<@{member.id}>, vartotojas `{name}` jau yra **patvirtintas** :x:")
                 else:
-                    cur.execute(f"UPDATE `users_data` SET `DiscordVerified`='1',`DiscordUser`='{member.id}' WHERE `id`='{row[0]}'")
-                    db.commit()
-                    
-                    await channel.send(f"<@{member.id}> sėkmingai **patvirtinai** vartotoją `{args[1]}` :white_check_mark:")
+
+                    if len(code) <= 0 or verified == 0:
+                        now = datetime.now()
+                        dt_string = "SOUTHLAND.LT "
+                        dt_string += now.strftime("%d/%m/%Y %H:%M:%S")
+                        dt_string += " " + str(user_id)
+
+                        code = ""
+                        code = hashlib.md5(dt_string.encode()).hexdigest()
+                        code = code[0:9]
+
+                        cur.execute(f"UPDATE `users_data` SET `DiscordVerified`='1',`DiscordCode`='{code}',`DiscordUser`='{member.id}' WHERE `id`='{user_id}'")
+                        db.commit()
+
+                    await channel.send(f"<@{member.id}>, patvirtinimo kodas išsiųstas į PM. Įveskite jį žaidime. :mailbox_with_mail:")
+                    await send_verification_code(member, code)
+                    # await channel.send(f"<@{member.id}> sėkmingai **patvirtinai** vartotoją `{name}` :white_check_mark:")
 
         cur.close()
+
+    async def send_verification_code(member, code):
+        dm = await member.create_dm()
+        await dm.send(f"Tavo patvirtinimo kodas yra: `{code}`. Įvesk jį žaidime, sėkmės :wave:")
 
     client.run(token)
