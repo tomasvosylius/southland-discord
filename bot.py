@@ -5,8 +5,7 @@
 import discord
 import functionslib as func
 
-general_channel_name = "pagrindinis"
-admin_logs_channel_name = "admin-logs"
+admin_channel_id     = 705791066892140644
 token_file           = "token.txt"
 server_name          = "Southland.lt"
 samp_server_ip       = "samp.southland.lt:7777"
@@ -23,9 +22,6 @@ messages             = {
 
 if __name__ == "__main__":
 
-    gen_channel = None # general channel
-    admin_channel = None # admin-logs channel
-
     db = func.mysql_connect()
 
     print("Starting bot.py!")
@@ -36,30 +32,13 @@ if __name__ == "__main__":
     client = discord.Client()
     print("Running the client now...")
 
-
-    @client.event 
-    async def on_ready():
-        # gen_channel = func.get_channel_by_name(client, general_channel_name)
-        # if gen_channel is None:
-        #     print("Error when looking for channel (general)")
-        # else:
-        #     print("General channel was found")
-
-        # admin_channel = func.get_channel_by_name(client, admin_logs_channel_name)
-        admin_channel = client.get_channel(705121791546359888)
-        if admin_channel is None:
-            print("Error when looking for channel (admin_channel)")
-        else:
-            print("Admin logs channel was found")
-            # await admin_channel.send("Sistema įjungta")
+    # @client.event 
+    # async def on_ready():
+    #     return
 
     @client.event
     async def on_member_join(member):
         print(f"{str(member)} just joined the server.")
-    
-        if gen_channel != None:
-            # send the message to general channel
-            await greet_member(gen_channel, message.author)
 
         # message the user
         dm = await member.create_dm()
@@ -111,7 +90,7 @@ if __name__ == "__main__":
 
             else:
                 await message.channel.send(f"<@{message.author.id}>, nesi administratorius :x:")
-            
+
 
         if message.content.startswith("!verify"):
             args = message.content.split()
@@ -168,18 +147,12 @@ if __name__ == "__main__":
             string += "```"
             if len(string) > 0:
                 
+                await channel.send(f"<@{admin.id}>, vartotojo duomenys ir veikėjai išsiųsti į <#{admin_channel_id}> kanalą.")
                 
-                # if admin_channel is None:
-                #     await channel.send(f"<@{admin.id}>, vartotojo duomenys ir veikėjai išsiųsti į PM.")
-                #     dm = await admin.create_dm()
-                #     await dm.send(string)
-                # else:
                 await client.wait_until_ready()
-
-                await channel.send(f"<@{admin.id}>, vartotojo duomenys ir veikėjai išsiųsti į <#{admin_logs_channel_name}> kanalą.")
-                await admin_channel.send(string) # doesnt work
-                
-                #await channel.send(string) works
+                admin_channel = client.get_channel(admin_channel_id)
+                await admin_channel.send(string)
+            
 
         cur.close()
 
