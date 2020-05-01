@@ -2,22 +2,21 @@
 # http://github.com/tomasvosylius/discord-bot
 # using discord.py
 
+# -- coding: utf-8 --
+
 import discord
 import hashlib
 import functionslib as func
 from datetime import datetime
 
-admin_channel_id     = 705791066892140644
-token_file           = "token.txt"
-server_name          = "Southland.lt"
-samp_server_ip       = "samp.southland.lt:7777"
-messages             = {
+admin_channel_id = 705791066892140644
+token_file = "token.txt"
+server_name = "Southland.lt"
+samp_server_ip = "samp.southland.lt:7777"
+messages = {
     # message used for DM when new user joins
     "verification_message" : 
-        f"Sveikiname prisijungus prie {server_name}! :partying_face:\n"
-        f"Jei negali rašyti žinučių Discord kanaluose, privalai patvirtinti savo __telefono numerį__.\n"
-        f"Norėdamas patvirtinti savo UCP vartotoją, užsiregistruok serveryje `{samp_server_ip}`\n"
-        f"Apie vartotojo patvirtinimą pasiskaityk **#žaidėjo-patvirtinimas**",
+        f"Sveikiname prisijungus prie {server_name}! :partying_face:\nJei negali rašyti žinučių Discord kanaluose, privalai patvirtinti savo __telefono numerį__.\nNorėdamas patvirtinti savo UCP vartotoją, užsiregistruok serveryje `{samp_server_ip}`\nApie vartotojo patvirtinimą pasiskaityk **#žaidėjo-patvirtinimas**",
     "welcome_global" : 
         "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!",
 }
@@ -110,7 +109,7 @@ if __name__ == "__main__":
     async def show_user_data(channel, member, check_user):
 
         cur = db.cursor()
-        sql = f"SELECT `Name`,`id`,`RegisterIp`,`RegisterDate` FROM `users_data` WHERE `DiscordUser`='{check_user}'"
+        sql = f"SELECT `Name`,`id`,`RegisterIp`,`RegisterDate` FROM `users_data` WHERE `DiscordVerified`='2' AND `DiscordUser`='{check_user}'"
         cur.execute(sql)
         row = cur.fetchone()
         if row is None:
@@ -166,7 +165,7 @@ if __name__ == "__main__":
         cur = db.cursor()
         args[1] = args[1].strip()
 
-        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordUser`='{member.id}' AND `DiscordVerified` >= '2'"
+        sql = f"SELECT `Name` FROM `users_data` WHERE `DiscordVerified` >= '2'"
         cur.execute(sql)
         row = cur.fetchone()
         if row is not None:
