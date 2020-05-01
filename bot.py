@@ -96,7 +96,9 @@ if __name__ == "__main__":
 
     async def show_user_data(channel, member, check_user):
 
+        db = func.mysql_connect()
         cur = db.cursor()
+
         sql = f"SELECT `Name`,`id`,`RegisterIp`,`RegisterDate` FROM `users_data` WHERE `DiscordVerified`='2' AND `DiscordUser`='{check_user}'"
         cur.execute(sql)
         row = cur.fetchone()
@@ -117,6 +119,7 @@ if __name__ == "__main__":
             await show_game_accounts(lpad, channel, member, user_id)
 
         cur.close()
+        db.close()
 
     async def show_game_accounts(lpad, channel, admin, user_id):
     
@@ -173,40 +176,36 @@ if __name__ == "__main__":
             name = name.replace(';', '')
             name = name.replace('-', '')
             name = name.replace('\'', '')
-            if len(name) <= 0:
-                return
+            if len(name) > 0:
 
-            sql = f"SELECT `id`,`DiscordVerified`,`DiscordCode` FROM `users_data` WHERE `Name`='{name}'"
-            cur.execute(sql)
-            row = cur.fetchone()
+                sql = f"SELECT `id`,`DiscordVerified`,`DiscordCode` FROM `users_data` WHERE `Name`='{name}'"
+                cur.execute(sql)
+                row = cur.fetchone()
 
-            if row is None:
-                await channel.send(f"<@{member.id}>, vartotojas `{name}` serveryje **neegzistuoja** :x:")
-            else:
-                user_id = row[0]
-                verified = row[1]
-                code = row[2]
-
-                if verified == 2:
-                    await channel.send(f"<@{member.id}>, vartotojas `{name}` jau yra **patvirtintas** :x:")
+                if row is None:
+                    await channel.send(f"<@{member.id}>, vartotojas `{name}` serveryje **neegzistuoja** :x:")
                 else:
+                    user_id = row[0]
+                    verified = row[1]
+                    code = row[2]
 
-                    if len(code) <= 0 or verified == 0:
-                        now = datetime.now()
-                        dt_string = "SOUTHLAND.LT "
-                        dt_string += now.strftime("%d/%m/%Y %H:%M:%S")
-                        dt_string += " " + str(user_id)
+                    if verified == 2:
+                        await channel.send(f"<@{member.id}>, vartotojas `{name}` jau yra **patvirtintas** :x:")
+                    else:
 
-                        code = ""
-                        code = hashlib.md5(dt_string.encode()).hexdigest()
-                        code = code[0:9]
+                        if len(code) <= 0 or verified == 0:
+                            now = datetime.now()
+                            dt_string = "SOUTHLAND.LT "
+                            dt_string += now.strftime("%d/%m/%Y %H:%M:%S")
+                            dt_string += " " + str(user_id)
+                            code = ""
+                            code = hashlib.md5(dt_string.encode()).hexdigest()
+                            code = code[0:9]
+                            cur.execute(f"UPDATE `users_data` SET `DiscordVerified`='1',`DiscordCode`='{code}',`DiscordUser`='{member.id}' WHERE `id`='{user_id}'")
+                            db.commit()
 
-                        cur.execute(f"UPDATE `users_data` SET `DiscordVerified`='1',`DiscordCode`='{code}',`DiscordUser`='{member.id}' WHERE `id`='{user_id}'")
-                        db.commit()
-
-                    await channel.send(f"<@{member.id}>, patvirtinimo kodas išsiųstas į PM. Įveskite jį žaidime. :mailbox_with_mail:")
-                    await send_verification_code(member, code)
-                    # await channel.send(f"<@{member.id}> sėkmingai **patvirtinai** vartotoją `{name}` :white_check_mark:")
+                        await channel.send(f"<@{member.id}>, patvirtinimo kodas išsiųstas į PM. Įveskite jį žaidime. :mailbox_with_mail:")
+                        await send_verification_code(member, code)
 
         db.close()
         cur.close()
