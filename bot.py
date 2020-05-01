@@ -45,7 +45,8 @@ if __name__ == "__main__":
         # else:
         #     print("General channel was found")
 
-        admin_channel = func.get_channel_by_name(client, admin_logs_channel_name)
+        # admin_channel = func.get_channel_by_name(client, admin_logs_channel_name)
+        admin_channel = client.get_channel(705121791546359888)
         if admin_channel is None:
             print("Error when looking for channel (admin_channel)")
         else:
