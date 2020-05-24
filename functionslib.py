@@ -14,8 +14,8 @@ def mysql_connect():
     try:
         db = mysql.connector.connect(
             host="localhost",
-            user="root",
-            passwd="",
+            user="discord_bot",
+            passwd="OEyFzJ3TQZs2LPLF",
             database="southland"
         )
     except mysql.connector.Error as err:

@@ -19,7 +19,8 @@ messages = {
         f"Sveikiname prisijungus prie {server_name}! :partying_face:\n"
         f"Jei negali rašyti žinučių Discord kanaluose, privalai patvirtinti savo __telefono numerį__.\n"
         f"Norėdamas patvirtinti savo UCP vartotoją, užsiregistruok serveryje `{samp_server_ip}`\n"
-        f"Apie vartotojo patvirtinimą pasiskaityk **#žaidėjo-patvirtinimas**",
+        f"Apie vartotojo patvirtinimą pasiskaityk **#žaidėjo-patvirtinimas**\n"
+        f"Jei norėsi atstatyti slaptažodį, naudok !password. Instrukcijas gausi privačiai.",
     "welcome_global" : 
         "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!",
 }
@@ -59,6 +60,9 @@ if __name__ == "__main__":
         if message.author == client.user:
             return # ignore the bot itself
 
+        if message.content.startswith("!ip"):
+            await message.channel.send(f"Serverio IP: {samp_server_ip}")
+
         if message.content.startswith("!myid"):
             await message.channel.send(f"Tavo Discord ID yra {message.author.id}")
 
@@ -90,6 +94,9 @@ if __name__ == "__main__":
                 await message.channel.send(f"<@{member.id}>, neteisingai nurodei vartotojo vardą :x:")
             else:
                 await verify_member(message.channel, message.author, args)
+        
+        if message.content.startswith("!password"):
+            await change_password(message.channel, message.author)
                 
     """
         Funkcijos
@@ -157,6 +164,31 @@ if __name__ == "__main__":
 
         cur.close()    
         db.close()
+
+
+    async def change_password(channel, member):
+        """
+            Psw keitimas    
+        """
+
+        db = func.mysql_connect()
+        cur = db.cursor()
+
+        args[1] = args[1].strip()
+
+        sql = f"SELECT `DiscordCode` FROM `users_data` WHERE `DiscordVerified` >= '2' AND `DiscordUser` = '{member.id}'"
+        cur.execute(sql)
+        row = cur.fetchone()
+        if row is not None:
+            code = row[0]
+
+            await channel.send(f"<@{member.id}>, slaptažodžio keitimo instrukcijos išsiųstos PM!")
+            dm = await member.create_dm()
+            await dm.send(f"Prisijunk į žaidimą ir įvesk savo kodą: `{code}`. Tuomet matysi slaptažodžio keitimą. Sėkmės :wave:")
+        else:
+            await channel.send(f"<@{member.id}>, tu neturi žaidėjo vartotojo!")
+
+
 
     async def verify_member(channel, member, args):
         """
