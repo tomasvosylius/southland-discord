@@ -22,7 +22,7 @@ messages = {
         f"Apie vartotojo patvirtinimą pasiskaityk **#žaidėjo-patvirtinimas**\n"
         f"Jei norėsi atstatyti slaptažodį, naudok !password. Instrukcijas gausi privačiai.",
     "welcome_global" : 
-        "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!",
+        "Labas, __{0}__! :wave: :tada:\nSveikiname prisijungus prie {1} serverio!"
 }
 
 if __name__ == "__main__":
@@ -174,20 +174,24 @@ if __name__ == "__main__":
         db = func.mysql_connect()
         cur = db.cursor()
 
-        args[1] = args[1].strip()
-
-        sql = f"SELECT `DiscordCode` FROM `users_data` WHERE `DiscordVerified` >= '2' AND `DiscordUser` = '{member.id}'"
+        sql = f"SELECT `DiscordCode`,`id` FROM `users_data` WHERE `DiscordVerified` >= '2' AND `DiscordUser` = '{member.id}'"
         cur.execute(sql)
         row = cur.fetchone()
         if row is not None:
             code = row[0]
+            user_id = row[1]
+            cur.execute(f"UPDATE `users_data` SET `NeedsPswChange`='1' WHERE `id`='{user_id}'")
+            db.commit()
 
             await channel.send(f"<@{member.id}>, slaptažodžio keitimo instrukcijos išsiųstos PM!")
             dm = await member.create_dm()
             await dm.send(f"Prisijunk į žaidimą ir įvesk savo kodą: `{code}`. Tuomet matysi slaptažodžio keitimą. Sėkmės :wave:")
+
         else:
             await channel.send(f"<@{member.id}>, tu neturi žaidėjo vartotojo!")
 
+        db.close()
+        cur.close()
 
 
     async def verify_member(channel, member, args):
